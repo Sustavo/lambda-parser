@@ -38,7 +38,7 @@ TERMO ::= true
 | ( TERMO TERMO )
 | lambda VARIAVEL : TIPO . TERMO end
 ----------------------------------------------------------------------------
-NUMERO ::= DIGITO | DIGITO_N~AO_ZERO SEQ_DIGITOS
+NUMERO ::= DIGITO | DIGITO_NAO_ZERO SEQ_DIGITOS
 DIGITO ::= 0 | DIGITO_NAO_ZERO
 DIGITO_NAO_ZERO ::= 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 SEQ_DIGITOS ::= DIGITO | DIGITO SEQ_DIGITOS
@@ -51,7 +51,7 @@ LETRA ::= a | b | c | d | e | f | g | h | i
 | J | K | L | M | N | O | P | Q | R
 | S | T | U | V | W | X | Y | Z
 SEQ_ALFA_NUM ::= ALFA_NUM | ALFA_NUM SEQ_ALFA_NUM
-ALFA_NUM ::= LETRA | D´IGITO
+ALFA_NUM ::= LETRA | DIGITO
 ----------------------------------------------------------------------------
 TIPO ::= Bool | Nat | ( TIPO -> TIPO )
 ----------------------------------------------------------------------------
