@@ -1,4 +1,6 @@
 use std::io;
+use std::process;
+
 
 #[derive(Debug, PartialEq, Clone)] 
 enum Tipo {
@@ -25,6 +27,11 @@ enum Termo {
     If(Box<Termo>, Box<Termo>, Box<Termo>),
     Aplicacao(Box<Termo>, Box<Termo>),
     Lambda(Box<Var>, Box<Tipo>, Box<Termo>),
+}
+
+fn error_method() {
+    println!("!");
+    process::exit(0);
 }
 
 fn vector_tail<T: Clone>(list: Vec<T>) -> Vec<T> {
@@ -99,7 +106,7 @@ fn type_values(termo: Termo, lista: Vec<(&str, Tipo)>) -> Tipo {
 }
 
 fn pass_to_type(tipo: Vec<&str>) -> (Tipo, Vec<&str>) {
-    if tipo.is_empty() { panic!("!") };
+    if tipo.is_empty() { error_method() };
 
     for variable in &tipo {
         let first_tail_vector = vector_tail(tipo.clone());
@@ -107,7 +114,7 @@ fn pass_to_type(tipo: Vec<&str>) -> (Tipo, Vec<&str>) {
             "(" => {
                 let (type_one, first_vector_string) = pass_to_type(first_tail_vector);
                 let (type_two, second_vector_string) = pass_to_type(first_vector_string);
-                if second_vector_string.is_empty() { panic!("!") };
+                if second_vector_string.is_empty() { error_method() };
                 
                 for second_variable in &*second_vector_string {
                     let second_tail_vector = vector_tail(second_vector_string.clone());
@@ -118,7 +125,7 @@ fn pass_to_type(tipo: Vec<&str>) -> (Tipo, Vec<&str>) {
                                 Box::new(type_two.clone()),
                             ),  second_tail_vector)
                         }
-                        _ => panic!("!"),
+                        _ => { error_method() },
                     };
                 }
             }
@@ -132,7 +139,7 @@ fn pass_to_type(tipo: Vec<&str>) -> (Tipo, Vec<&str>) {
             "Nat" => {
                 return (Tipo::Nat, first_tail_vector);
             }
-            _ => panic!("!"),
+            _ => { error_method() }
         }
     };
 
@@ -148,7 +155,7 @@ fn invalidator(variable: &str) -> bool {
 }
 
 fn pass_to_term(symbols: Vec<&str>) -> (Termo, Vec<&str>) {
-    if symbols.is_empty() { panic!("!") };
+    if symbols.is_empty() { error_method() };
 
     for symbol in &symbols {
         let tail_vector_one = vector_tail(symbols.clone());
@@ -156,7 +163,7 @@ fn pass_to_term(symbols: Vec<&str>) -> (Termo, Vec<&str>) {
             "(" => {
                 let (term_one, vector_string_one) = pass_to_term(tail_vector_one);
                 let (term_two, vector_string_two) = pass_to_term(vector_string_one);
-                if vector_string_two.is_empty() { panic!("!") };
+                if vector_string_two.is_empty() { error_method() };
                 for variable in &*vector_string_two {
                     let tail_vector_two = vector_tail(vector_string_two.clone());
                     match *variable {
@@ -166,28 +173,28 @@ fn pass_to_term(symbols: Vec<&str>) -> (Termo, Vec<&str>) {
                                 Box::new(term_two.clone()),
                             ),  tail_vector_two)
                         }
-                        _ => panic!("!"),
+                        _ => { error_method() },
                     };
                 }
             }
-            ")" => panic!("!"),
+            ")" => { error_method() },
             "if" => {
                 let (term_one, vector_string_one) = pass_to_term(tail_vector_one);
-                if vector_string_one.is_empty() { panic!("!") };
+                if vector_string_one.is_empty() { error_method() };
 
                 for variable_one in &*vector_string_one {
                     let tail_vector_two = vector_tail(vector_string_one.clone());
                     match *variable_one {
                         "then" => {
                             let (term_two, vector_string_two) = pass_to_term(tail_vector_two);
-                            if vector_string_two.is_empty() { panic!("!") };
+                            if vector_string_two.is_empty() { error_method() };
 
                             for variable_two in &*vector_string_two {
                                 let tail_vector_three = vector_tail(vector_string_two.clone());
                                 match *variable_two {
                                     "else" => {
                                         let (term_three, vector_string_three) = pass_to_term(tail_vector_three);
-                                        if vector_string_three.is_empty() { panic!("!") };
+                                        if vector_string_three.is_empty() { error_method() };
                                         for variable_three in &*vector_string_three {
                                             let tail_vector_four = vector_tail(vector_string_three.clone());
                                             match *variable_three {
@@ -198,18 +205,18 @@ fn pass_to_term(symbols: Vec<&str>) -> (Termo, Vec<&str>) {
                                                         Box::new(term_three.clone()),
                                                     ), tail_vector_four)
                                                 }
-                                                _ => panic!("!"),
+                                                _ => { error_method() },
                                             };
                                         }
 
                                     }
-                                    _ => panic!("!"),
+                                    _ => { error_method() },
                                 }
                             }
 
 
                         }
-                        _ => panic!("!"),
+                        _ => { error_method() },
                     }
                 }
 
@@ -234,7 +241,7 @@ fn pass_to_term(symbols: Vec<&str>) -> (Termo, Vec<&str>) {
                 let rest = vector_tail(vector_tail(tail_vector_one));
 
                 if invalidator(var) {
-                    panic!("!")
+                    error_method()
                 } else { 
                     let (type_one, string_vector_one) = pass_to_type(rest);
                     for variable_one in &*string_vector_one {
@@ -252,11 +259,11 @@ fn pass_to_term(symbols: Vec<&str>) -> (Termo, Vec<&str>) {
                                                 Box::new(term_one.clone()),
                                             ), tail_vector_two)
                                         }
-                                        _ => panic!("!"),
+                                        _ => { error_method() },
                                     };
                                 }
                             },
-                            _ => panic!("!"),
+                            _ => { error_method() },
                         }
 
                     }
@@ -269,7 +276,7 @@ fn pass_to_term(symbols: Vec<&str>) -> (Termo, Vec<&str>) {
                     return (Termo::Numero(num), tail_vector_one);
                 } else {
                     if invalidator(symbol) {
-                        panic!("!");
+                        error_method()
                     } else {
                         return (Termo::Var(Box::new(symbol.to_string())), tail_vector_one);
                     }
@@ -292,7 +299,7 @@ fn print_result(tipo: &Tipo) {
                 let t2 = string_of_tipo(b);
                 format!("( {} -> {} )", t1, t2)
             }
-            Tipo::SemTipo => panic!("-"),
+            Tipo::SemTipo => "-".to_string(),
         }
     }
 
@@ -302,7 +309,6 @@ fn print_result(tipo: &Tipo) {
 
 fn main() {
     let mut input = String::new();
-    println!("Enter your code:");
     io::stdin().read_line(&mut input).expect("Failed to read line");
     let words: Vec<&str> = input.split_whitespace().collect();
     let empty_list_parser: Vec<&str> = Vec::new();
@@ -311,7 +317,7 @@ fn main() {
     let (term_parser, vec_string_parser) = pass_to_term(words);
 
     if vec_string_parser != empty_list_parser {
-        panic!("!");
+        error_method()
     } else {
         let typing = type_values(term_parser, empty_list);
         print_result(&typing);
