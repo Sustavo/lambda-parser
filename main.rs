@@ -63,12 +63,24 @@ fn type_variable<'a>(var: &'a str, lista: Vec<(&'a str, Tipo)>) -> Tipo {
 
 fn type_values(termo: Termo, lista: Vec<(&str, Tipo)>) -> Tipo {
     match termo {
-        Termo::True => Tipo::Bool,
-        Termo::False => Tipo::Bool,
-        Termo::Numero(_) => Tipo::Nat,
-        Termo::Suc => Tipo::Seta(Box::new(Tipo::Nat), Box::new(Tipo::Nat)),
-        Termo::Pred => Tipo::Seta(Box::new(Tipo::Nat), Box::new(Tipo::Nat)),
-        Termo::EhZero => Tipo::Seta(Box::new(Tipo::Nat), Box::new(Tipo::Bool)),
+        Termo::True => {
+            return Tipo::Bool;
+        },
+        Termo::False => {
+            return Tipo::Bool;
+        },
+        Termo::Numero(_) => {
+            return Tipo::Nat;
+        },
+        Termo::Suc => {
+            return Tipo::Seta(Box::new(Tipo::Nat), Box::new(Tipo::Nat));
+        },
+        Termo::Pred => {
+            return Tipo::Seta(Box::new(Tipo::Nat), Box::new(Tipo::Nat));
+        },
+        Termo::EhZero => {
+            return Tipo::Seta(Box::new(Tipo::Nat), Box::new(Tipo::Bool));
+        },
         Termo::Var(x) => type_variable(&x, lista),
         Termo::If(conditional, then_branch, else_branch) => {
             let type_cond = type_values(*conditional, lista.clone());
@@ -150,7 +162,13 @@ fn invalidator(variable: &str) -> bool {
     match variable {
         "true" | "false" | "if" | "then" | "else" | "endif" | "suc" | "pred"
         | "ehzero" | "lambda" | "Nat" | "Bool" | "End" => true,
-        _ => false,
+        _ => {
+            if let Ok(_) = variable.parse::<i32>() {
+                return true;
+            }
+
+            return false;
+        },
     }
 }
 
