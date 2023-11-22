@@ -1,6 +1,6 @@
 use std::io;
 use std::process;
-
+use std::convert::TryInto;
 
 #[derive(Debug, PartialEq, Clone)] 
 enum Tipo {
@@ -46,18 +46,27 @@ fn vector_tail<T: Clone>(list: Vec<T>) -> Vec<T> {
 
 
 
-fn type_variable<'a>(var: &'a str, lista: Vec<(&'a str, Tipo)>) -> Tipo {
+fn type_variable<'a>(variavel: &'a str, lista: Vec<(&'a str, Tipo)>, count: i32 ) -> Tipo {
     if lista.is_empty() {
         return Tipo::SemTipo;
-    }
+    } else {
+        let (v, t) = &lista[0];
+        let mut new_vector = vector_tail(lista.clone());
+        new_vector.push((v, t.clone()));
 
-    for (variavel, tipo) in lista {
-        if variavel == var {
-            return tipo;
+        if *v == variavel {
+            return t.clone();
+        } else {
+            if new_vector.len() > count.try_into().unwrap() {
+                return type_variable(variavel, new_vector, count + 1);
+            } else {
+                println!("-");
+                process::exit(0);
+            }
         }
-    }
 
-    return Tipo::SemTipo;
+
+    }
 }
 
 
@@ -81,7 +90,7 @@ fn type_values(termo: Termo, lista: Vec<(&str, Tipo)>) -> Tipo {
         Termo::EhZero => {
             return Tipo::Seta(Box::new(Tipo::Nat), Box::new(Tipo::Bool));
         },
-        Termo::Var(x) => type_variable(&x, lista),
+        Termo::Var(x) => type_variable(&x, lista, 0),
         Termo::If(conditional, then_branch, else_branch) => {
             let type_cond = type_values(*conditional, lista.clone());
             let type_then = type_values(*then_branch, lista.clone());
