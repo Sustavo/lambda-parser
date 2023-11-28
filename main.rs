@@ -47,7 +47,7 @@ fn vector_tail<T: Clone>(list: Vec<T>) -> Vec<T> {
 
 
 fn type_variable<'a>(variavel: &'a str, lista: Vec<(&'a str, Tipo)>, count: i32 ) -> Tipo {
-    if lista.is_empty() {
+    if lista.is_empty() || lista.len() == 0 {
         return Tipo::SemTipo;
     } else {
         let (v, t) = &lista[0];
@@ -98,12 +98,13 @@ fn type_values(termo: Termo, lista: Vec<(&str, Tipo)>) -> Tipo {
 
             if (type_cond == Tipo::Bool) && (type_then == type_else) {
                 return type_then;
+            } else {
+                return Tipo::SemTipo;
             }
-            return Tipo::SemTipo;
         }
-        Termo::Aplicacao(first_item, second_item) => {
-            let primeiro_valor = type_values(*first_item, lista.clone());
-            let segundo_valor = type_values(*second_item, lista.clone());
+        Termo::Aplicacao(funcao, argumento) => {
+            let primeiro_valor = type_values(*funcao, lista.clone());
+            let segundo_valor = type_values(*argumento, lista.clone());  
             match (primeiro_valor, segundo_valor) {
                 (Tipo::Seta(u, b), c) => {
                     if *u == c {
@@ -117,52 +118,44 @@ fn type_values(termo: Termo, lista: Vec<(&str, Tipo)>) -> Tipo {
         }
         Termo::Lambda(variavel, tipo, termo) => {
             let mut enviar = lista;
+
             let extract_string = match &*variavel {
                 Var::Var(string) => string.clone(),
             };
-            enviar.push((&*extract_string.as_str() , *tipo.clone()));
+
+            enviar.insert(0, (&*extract_string.as_str(), *tipo.clone()));
             return Tipo::Seta(tipo, Box::new(type_values(*termo, enviar)));
         }
     }
 }
 
 fn pass_to_type(tipo: Vec<&str>) -> (Tipo, Vec<&str>) {
-    if tipo.is_empty() { error_method() };
+    let first_element = &tipo[0];
+    let first_tail_vector = vector_tail(tipo.clone());
+    match *first_element {
+        "(" => {
+            let (type_one, first_vector_string) = pass_to_type(first_tail_vector);
+            let (type_two, second_vector_string) = pass_to_type(first_vector_string);
 
-    for variable in &tipo {
-        let first_tail_vector = vector_tail(tipo.clone());
-        match *variable {
-            "(" => {
-                let (type_one, first_vector_string) = pass_to_type(first_tail_vector);
-                let (type_two, second_vector_string) = pass_to_type(first_vector_string);
-                if second_vector_string.is_empty() { error_method() };
-                
-                for second_variable in &*second_vector_string {
-                    let second_tail_vector = vector_tail(second_vector_string.clone());
-                    match *second_variable {
-                        ")" => {
-                            return (Tipo::Seta(
-                                Box::new(type_one.clone()),
-                                Box::new(type_two.clone()),
-                            ),  second_tail_vector)
-                        }
-                        _ => { error_method() },
-                    };
-                }
-            }
-            "->"  => {
-                let (result_type, remaining_vector) = pass_to_type(first_tail_vector);
-                return (result_type, remaining_vector)
-            }
-            "Bool" => {
-                return (Tipo::Bool, first_tail_vector);
-            }
-            "Nat" => {
-                return (Tipo::Nat, first_tail_vector);
-            }
-            _ => { error_method() }
+            if second_vector_string[0] == ")" {
+                let final_vector = vector_tail(second_vector_string.clone());
+                return (Tipo::Seta(
+                    Box::new(type_one.clone()),
+                    Box::new(type_two.clone()),
+                ),  final_vector)
+            } else { error_method() }
         }
-    };
+        "->"  => {
+            return pass_to_type(first_tail_vector);
+        }
+        "Bool" => {
+            return (Tipo::Bool, first_tail_vector);
+        }
+        "Nat" => {
+            return (Tipo::Nat, first_tail_vector);
+        }
+        _ => { error_method() }
+    }
 
     unreachable!();
 }
